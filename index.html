@@ -1,0 +1,15 @@
+<html>
+
+<head>
+	<title>Post Me!</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+	<script src="app.js"></script>
+</head>
+
+<body ng-app="postMe" ng-controller="MainCtrl">
+	<div ng-repeat="post in posts">
+		{{post}}
+	</div>
+</body>
+
+</html>
