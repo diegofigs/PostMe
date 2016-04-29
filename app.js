@@ -1,16 +1,17 @@
 var app = angular.module('postMe', []);
 
-app.controller('MainCtrl', ['$scope', function ($scope) {
+app.factory('posts', [ function(){
+	var obj = {
+		posts: []
+	};
+	return obj;
+}]);
+
+app.controller('MainCtrl', ['$scope', 'posts', function ($scope, posts) {
 	$scope.test = 'Hello World!';
-	$scope.posts = [
-		{title: 'post 1', upvotes: 5},
-		{title: 'post 2', upvotes: 2},
-		{title: 'post 3', upvotes: 5},
-		{title: 'post 4', upvotes: 10},
-		{title: 'post 5', upvotes: 9}
-	];
+	$scope.posts = posts.posts;
 	$scope.addPost = function(){
-		if(!$scope.title | $scope.title === ''){return; }
+		if(!$scope.title | $scope.title === ''){return ; }
 		$scope.posts.push({
 			title: $scope.title,
 			link: $scope.link,
