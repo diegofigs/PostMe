@@ -57,4 +57,40 @@ router.put('/posts/:post/upvote', function(req, res, next){
 	});
 });
 
+/* POST route for creating and adding a comment to a post */
+router.post('/posts/:post/comments', function(req, res, next){
+	var comment = new Comment(req.body);
+	comment.post = req.post;
+	
+	comment.save(function(err, comment){
+		if(err){ return next(err); }
+		req.post.comments.push(comment);
+		req.post.save(function(err, post){
+			if(err){ return next(err); }
+			res.json(comment);
+		});
+	});
+});
+
+/* PARAM route for preloading comments, helper function */
+router.param('comment', function(req, res, next, id){
+	var query = Comment.findById(id);
+	
+	query.exec(function(err, comment){
+		if(err){ return next(err); }
+		if(!comment){ return next(new Error('can\'t find comment')); }
+		
+		req.comment = comment;
+		return next();
+	});
+});
+
+/* PUT route for upvoting a comment */
+router.put('/posts/:post/comments/:comment/upvote', function(req, res, next){
+	req.comment.upvote(function(err, comment){
+		if(err){ return next(err); }
+		res.json(comment);
+	});
+});
+
 module.exports = router;
