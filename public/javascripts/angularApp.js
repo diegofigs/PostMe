@@ -8,7 +8,12 @@ app.config([
 		.state('/home', {
 			url: '/home',
 			templateUrl: '/home.html',
-			controller: 'MainCtrl'
+			controller: 'MainCtrl',
+			resolve: {
+				postPromise: ['posts', function(posts){
+					return posts.getAll();
+				}]
+			}
 		})
 		.state('/posts', {
 			url: '/posts/{id}',
@@ -19,11 +24,26 @@ app.config([
 		$urlRouterProvider.otherwise('home');
 }]);
 
-app.factory('posts', [ function(){
-	var obj = {
+app.factory('posts', ['$http', function($http){
+	var o = {
 		posts: []
 	};
-	return obj;
+	o.getAll = function(){
+		return $http.get('/posts').success(function(data){
+			angular.copy(data, o.posts);
+		});
+	};
+	o.create = function(post){
+		return $http.post('/posts', post).success(function(data){
+			o.posts.push(data);
+		});
+	};
+	o.upvote = function(post){
+		return $http.put('/posts/'+ post._id + '/upvote').success(function(data){
+			post.upvotes += 1;
+		});
+	};
+	return o;
 }]);
 
 app.controller('MainCtrl', [
@@ -34,19 +54,15 @@ app.controller('MainCtrl', [
 		$scope.posts = posts.posts;
 		$scope.addPost = function(){
 			if(!$scope.title | $scope.title === ''){return; }
-			$scope.posts.push({
+			posts.create({
 				title: $scope.title,
-				link: $scope.link,
-				upvotes: 0,
-				comments: [
-					{'author': "Diego", 'body': "Great SEO", upvotes: 6}
-				]
+				link: $scope.link
 			});
 			$scope.title = '';
 			$scope.link = '';
 		};
-		$scope.incrementUpvotes = function(obj){
-			obj.upvotes += 1;
+		$scope.incrementUpvotes = function(post){
+			posts.upvote(post);
 		};
 }]);
 
