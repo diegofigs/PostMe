@@ -1,13 +1,49 @@
 var express = require('express');
 var router = express.Router();
+var passport = require('passport');
 
 var mongoose = require('mongoose');
 var Post = mongoose.model('Post');
 var Comment = mongoose.model('Comment');
+var User = mongoose.model('User');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
+});
+
+/* POST route for registering users */
+router.post('/register', function(req, res, next){
+	if(!req.body.username || !req.body.password){
+		return res.status(400).json({message: 'Please fill out all fields.'});
+	}
+	// Create new User object, assign username and password
+	var user = new User();
+	user.username = req.body.username;
+	user.setPassword(req.body.password);
+	// Save user object in DB, generate and return token
+	user.save(function(err){
+		if(err){ return next(err);}
+		return res.json({token: user.generateJWT()});
+	});
+});
+
+/* GET route for authenticating users  */
+router.get('/login', function(req, res, next){
+	if(!req.body.username || !req.body.password){ return res.status(400).json({message: 'Please fill out all fields.'});
+	}
+	/* authenticate user: if user exists generate token,
+	else return info sent from DB */
+	passport.authenticate('local', function(err, user, info){
+		if(err){ return next(err); }
+		
+		if(user){
+			return res.json({token: generateJWT()});
+		}
+		else {
+			return res.status(401).json(info);
+		}
+	})(req, res, next);
 });
 
 /* GET route for requesting all posts */
